@@ -206,6 +206,27 @@ docker run -p 8080:80 nunoloureiro/taintedport:latest
 - Global footer on every page
 - Auto-reset database on container start
 
+## Contributing — vuln-leak guard
+
+This repo holds the *vulnerable app*, never the *answer key*. The known-vuln
+catalog, CWE/severity mappings and exploit notes live only in the private
+companion repo and are injected at build time. A guard enforces this:
+
+```
+python3 tests/check_no_vuln_leak.py     # run manually anytime (also a pytest test)
+```
+
+It runs automatically on every `git push` via a pre-push hook. **After cloning,
+enable the hook once:**
+
+```
+git config core.hooksPath .githooks
+```
+
+If the guard flags a genuine, intentional overlap with real app code, accept it
+with `python3 tests/check_no_vuln_leak.py --update-baseline` (stores one-way
+hashes only — never plaintext).
+
 ## Project Structure
 
 ```

@@ -1,0 +1,4 @@
+# Accepted answer-key overlaps (sha256 of normalized lines).
+# Hashes only -- no plaintext. Regenerate: python3 tests/check_no_vuln_leak.py --update-baseline
+4a332ab6180c7374315dbdb6b4cb599bda8c5a967f9e5223257162aad581d1f7
+85c772532c2c667217171279919fe1407daf7b31ebe45bafd88fbfb4b65d714a
