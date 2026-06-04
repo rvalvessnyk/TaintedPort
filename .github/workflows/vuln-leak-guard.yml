@@ -1,0 +1,25 @@
+name: vuln-leak-guard
+
+# Backstop for the pre-push hook: ensures no private vuln answer-key content
+# (catalog, CWE/severity mappings, exploit notes) has entered the public repo.
+# The private companion repo is not available in CI, so the structural detector
+# runs (catalog-shaped CWE/severity tables); the narrative detector runs locally
+# via the pre-push hook where the private repo is present.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so the guard sees all tracked content
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Check for vuln-info leaks
+        run: python3 tests/check_no_vuln_leak.py

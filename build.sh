@@ -60,8 +60,23 @@ if [ -f "$VULNS_CONTEXT/KnownVulnerabilities.txt" ]; then
     BUILD_ARGS+=(--build-context "vulns=$VULNS_CONTEXT")
 fi
 
+# ── Vuln-leak guard ───────────────────────────────────────────
+# Refuse to build/ship if private vuln answer-key content has leaked into
+# the public source tree. See tests/check_no_vuln_leak.py.
+echo -e "  ${BLUE}${BOLD}[1/4]${NC} ${BOLD}Checking for vuln-info leaks...${NC}"
+echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+if python3 "$SCRIPT_DIR/tests/check_no_vuln_leak.py"; then
+    echo ""
+    echo -e "  ${GREEN}✓ No vuln-info leak${NC}"
+else
+    echo ""
+    echo -e "  ${RED}✗ Vuln-info leak detected — aborting build.${NC}"
+    exit 1
+fi
+echo ""
+
 # ── Lint ──────────────────────────────────────────────────────
-echo -e "  ${BLUE}${BOLD}[1/3]${NC} ${BOLD}Linting frontend...${NC}"
+echo -e "  ${BLUE}${BOLD}[2/4]${NC} ${BOLD}Linting frontend...${NC}"
 echo -e "  ${DIM}─────────────────────────────────────────${NC}"
 
 if [ -d "$SCRIPT_DIR/frontend/node_modules" ]; then
@@ -83,7 +98,7 @@ fi
 
 # ── Build ──────────────────────────────────────────────────────
 echo ""
-echo -e "  ${BLUE}${BOLD}[2/3]${NC} ${BOLD}Building Docker image...${NC}"
+echo -e "  ${BLUE}${BOLD}[3/4]${NC} ${BOLD}Building Docker image...${NC}"
 echo -e "  ${DIM}─────────────────────────────────────────${NC}"
 
 docker buildx build \
@@ -99,7 +114,7 @@ echo -e "  ${GREEN}✓ Image built: ${BOLD}$IMAGE${NC}"
 # ── Push ───────────────────────────────────────────────────────
 if $DO_PUSH; then
     echo ""
-    echo -e "  ${BLUE}${BOLD}[3/3]${NC} ${BOLD}Pushing to Docker Hub...${NC}"
+    echo -e "  ${BLUE}${BOLD}[4/4]${NC} ${BOLD}Pushing to Docker Hub...${NC}"
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
 
     docker push "$IMAGE"
