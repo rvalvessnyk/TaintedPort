@@ -7,9 +7,15 @@ Build & push
 ------------
 ./build.sh
 
-(Or manually:)
+build.sh supplies the maintainer's build context from ../TaintedPort-Vulns
+via '--build-context vulns=...'. Without that context the image ships the
+in-repo stub from vulns-stub/.
 
-docker buildx build --platform linux/amd64 -t nunoloureiro/taintedport:latest .
+(Or manually — pass the build-context, or you ship the stub:)
+
+docker buildx build --platform linux/amd64 \
+    --build-context vulns=../TaintedPort-Vulns \
+    -t nunoloureiro/taintedport:latest .
 docker push nunoloureiro/taintedport:latest
 
 
@@ -21,12 +27,19 @@ sudo docker run -d \
     --name taintedport \
     --restart unless-stopped \
     -p 127.0.0.1:8080:80 \
+    -e ADMIN_USER='<username>' \
+    -e ADMIN_PASS='<strong-password>' \
     nunoloureiro/taintedport:latest
+
+REQUIRED: ADMIN_USER / ADMIN_PASS secure the restricted /a area. If you
+omit them the image falls back to built-in development defaults that are
+NOT safe for a public deployment. Always set your own values here.
 
 
 Verify
 ------
 sudo docker logs --tail=30 taintedport
 # Expect: "[init] php-fpm socket present at /var/run/php-fpm.sock"
+
 curl -sI -H 'Host: api.taintedport.com' http://localhost:8080/wines | head -1
 # Expect: HTTP/1.1 200 OK
